@@ -1,0 +1,35 @@
+meta_data:
+  script_path: run_scripts/train_embed_model.py
+  exp_name: basic_retrieval
+  description: Train an retrieval module
+  num_workers: 3
+  using_gpus: true
+
+# -----------------------------------------------------------------------------
+variables:
+  seed: [0]
+  condition_on_target: [True]
+  trainer_params:
+    embed_lr: [0.001]
+    pred_future_steps: [15]
+  muzero_params:
+    embed_dim: [128]
+
+# -----------------------------------------------------------------------------
+constants:
+  batch_size: 256
+  expert_name: "amass_humanoid_f15"
+
+  muzero_params:
+    embed_dim: 64
+    hidden_sizes:
+      - 256
+      - 256
+
+  pca_params:
+    reduction_dim: 16
+
+  trainer_params:
+    pred_future_steps: 5
+    embed_lr: 0.001
+    num_embed_epoches: 500

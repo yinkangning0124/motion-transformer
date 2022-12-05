@@ -1,0 +1,15 @@
+amass_humanoid_f5:
+  train_file_path: [
+    "./assets/processed_data/train_data-fs_5.th"
+  ]
+  test_file_path: [
+    "./assets/processed_data/test_data-fs_5.th"
+  ]
+
+amass_humanoid_f15:
+  train_file_path: [
+    "./assets/processed_data/train_data-fs_15.th"
+  ]
+  test_file_path: [
+    "./assets/processed_data/test_data-fs_15.th"
+  ]

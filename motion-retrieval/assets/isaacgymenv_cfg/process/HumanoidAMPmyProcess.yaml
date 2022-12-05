@@ -1,0 +1,6 @@
+# seed used to split the training and testing data
+seed: 0
+# ratio of test data to total data
+test_ratio: 0.2
+# number of time steps in each future observations
+future_steps: 15
