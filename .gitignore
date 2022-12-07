@@ -7,9 +7,11 @@
 /decision-transformer/gym/ss.pty
 /decision-transformer/gym/ddd/
 /decision-transformer/gym/motion_train_dataset/
-/decision-transformer/gym/state_preds.npy
 /decision-transformer/gym/visualize_retrieval_results.py
 /decision-transformer/gym/infer_data/
 /decision-transformer/gym/motion_transformer_99dim/
 /decision-transformer/gym/test_loss/
 /decision-transformer/gym/observation_data.xls
+*.npy
+*.png
+*.ply

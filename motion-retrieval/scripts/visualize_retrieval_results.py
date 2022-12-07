@@ -56,8 +56,8 @@ def quat_to_exp_map(q):
     return exp_map
 
 
-def obs_visualize(obs):
-    """
+def obs_visualize(obs, i = None):
+    '''
     obs numpy shape (1, 4+63) root_rot + dof_pos
 
     #save obs for experiment
@@ -70,72 +70,47 @@ def obs_visualize(obs):
     os.makedirs(obs_folder, exist_ok=True)
     savepath = os.path.join(obs_folder, time_str+".npy")
     np.save(savepath, obs_save)
-
-    """
-    DOF_BODY_IDS = [
-        3,
-        6,
-        9,
-        13,
-        16,
-        18,
-        20,
-        12,
-        15,
-        14,
-        17,
-        19,
-        21,
-        2,
-        5,
-        8,
-        11,
-        1,
-        4,
-        7,
-        10,
-    ]
-    body_model = "smpl"
-    body_model_path = "./assets/smpl_model/models"  # share drive
-
-    obs = torch.from_numpy(obs).view(-1, 1, 67)
-
+    
+    '''
+    DOF_BODY_IDS = [3, 6, 9, 13, 16, 18, 20, 12, 15, 14, 17, 19, 21, 2, 5, 8, 11, 1, 4, 7, 10]
+    body_model = 'smpl'
+    body_model_path = '/home/wenbin/kangning/motion/Character_Motion/Prompt_cluster/dataset/dataset/body_model/smpl_model/models' #share drive
+    '''
+    obs = torch.from_numpy(obs).view(-1, 1, 63)
+    
     rot = torch.zeros(list(obs.shape[:-2]) + [24, 3])
     rot[..., DOF_BODY_IDS, :] = obs[..., 4:].view(list(obs.shape[:-2]) + [21, 3])
     rot[..., 0, :] = quat_to_exp_map(obs[:, 0, :4])
-
+    '''
+    #obs = torch.from_numpy(obs)
+    obs = torch.tensor(obs, dtype=torch.float32)
+    pred24_4 = obs[..., 3:].view(-1, 4)
+    rot = quat_to_exp_map(pred24_4).view(-1, 24, 3)
+    
     body_model = smplx.create(model_path=body_model_path, model_type=body_model)
     faces = body_model.faces
 
-    vertices = (
-        body_model(global_orient=rot[..., :1, :], body_pose=rot[..., 1:, :])
-        .vertices[0]
-        .detach()
-        .numpy()
-    )
+    vertices = body_model(global_orient=rot[..., :1, :], body_pose=rot[..., 1:, :]).vertices[0].detach().numpy()
     # vertices = body_model().vertices[0].detach().numpy()
 
     original_mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
-    # original_mesh.export('obsvistest.ply')
+    original_mesh.export('obsvistest.ply')
     mesh = pyrender.Mesh.from_trimesh(original_mesh)
     scene = pyrender.Scene(bg_color=[0, 0, 0, 0], ambient_light=(0.3, 0.3, 0.3))
     # scene = pyrender.Scene()
-    scene.add(mesh, "mesh")
+    scene.add(mesh, 'mesh')
 
     # add camera pose
-    camera_pose = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 3], [0, 0, 0, 1]])
+    camera_pose = np.array([[1, 0, 0, 0],
+                            [0, 1, 0, 0],
+                            [0, 0, 1, 3],
+                            [0, 0, 0, 1]])
     # use this to make it to center
     camera = pyrender.camera.PerspectiveCamera(yfov=1)
     scene.add(camera, pose=camera_pose)
 
     # Get the lights from the viewer
-    # light = pyrender.SpotLight(color=np.ones(3), intensity=3.0, innerConeAngle=np.pi/3.0, outerConeAngle=np.pi/3.0)
-    light = pyrender.SpotLight(
-        color=100 * np.ones(3),
-        intensity=1.0,
-        innerConeAngle=np.pi / 16.0,
-        outerConeAngle=np.pi / 3.0,
-    )
+    light = pyrender.SpotLight(color=np.ones(3), intensity=3.0, innerConeAngle=np.pi/3.0, outerConeAngle=np.pi/3.0)
     scene.add(light, pose=camera_pose)
 
     # offscreen render
@@ -144,7 +119,8 @@ def obs_visualize(obs):
     # plt.figure(figsize=(8, 8))
     # plt.imshow(color[:, :, 0:3])
     # plt.show()
-    # cv2.imwrite('obsvistest.png', color[:, :, 0:3])
+    save_path = 'frame{}.png'.format(i)
+    cv2.imwrite(save_path, color[:, :, 0:3])
     return color[:, :, 0:3]
 
 
@@ -170,16 +146,20 @@ def retrieve_and_save_imgs(
     include_target: bool = False,
     idxes: np.ndarray = None,
 ):
-    raw_inputs = data[key]
+    raw_inputs = data
+    '''
     if key == "raw_observations" and include_target:
         raw_inputs = np.concatenate(
             [raw_inputs, data["raw_future_observations"][:, -1]], axis=-1
         )
+    '''
+    
     normalized_raw_inputs = (
         raw_inputs / np.linalg.norm(raw_inputs, axis=1)[:, np.newaxis]
     )
+    
     searcher = (
-        scann.scann_ops_pybind.builder(normalized_raw_inputs, 20, "dot_product")
+        scann.scann_ops_pybind.builder(normalized_raw_inputs, 100, "dot_product")
         .tree(
             num_leaves=2000,
             num_leaves_to_search=100,
@@ -189,56 +169,39 @@ def retrieve_and_save_imgs(
         .reorder(100)
         .build()
     )
-
+    '''
     if idxes is None:
         selected_idxes = np.random.choice(
-            test_data["observations"].shape[0], batch_size, replace=False
+            test_data.shape[0], batch_size, replace=False
         )
     else:
         selected_idxes = idxes
 
-    test_inputs = test_data[key]
+    test_inputs = test_data
     if key == "raw_observations" and include_target:
         test_inputs = np.concatenate(
             [test_inputs, test_data["raw_future_observations"][:, -1]], axis=-1
         )
+    
     test_normalized_inputs = (
         test_inputs / np.linalg.norm(test_inputs, axis=1)[:, np.newaxis]
     )
-
-    queries = [test_normalized_inputs[idx] for idx in selected_idxes]
+    '''
+    #queries = [test_inputs[idx] for idx in selected_idxes]
+    queries = test_data
     batch_knn_idxes = searcher.search_batched(queries)[0]
-
-    filtered_batch_knn_idxes = []
-    for idx in batch_knn_idxes:
-        filtered_idx = remove_samples_from_same_files(data, idx, num_samples)
-        filtered_batch_knn_idxes.append(filtered_idx)
-    filtered_batch_knn_idxes = np.array(filtered_batch_knn_idxes)
-
-    save_dir = "./images/{}{}".format(key, "-tar" if include_target else "")
-    if not os.path.exists(save_dir):
-        os.mkdir(save_dir)
-
-    for batch, knn_idxes in enumerate(filtered_batch_knn_idxes):
-        obs = test_data["raw_observations"][selected_idxes[batch]]
-        img = obs_visualize(obs)
-        cv2.imwrite(save_dir + f"/{batch}.png", img)
-        for fs in [4, 9, 14]:
-            obs = test_data["raw_future_observations"][selected_idxes[batch]][fs]
-            img = obs_visualize(obs)
-            cv2.imwrite(save_dir + f"/{batch}--fs-{fs + 1}.png", img)
-
-        for i, knn_idx in enumerate(knn_idxes[:3]):
-            obs = data["raw_observations"][knn_idx]
-            img = obs_visualize(obs)
-            cv2.imwrite(save_dir + f"/{batch}-{i}--{knn_idx}.png", img)
-            # for fs in range(len(data["raw_future_observations"][knn_idx])):
-            for fs in [4, 9, 14]:
-                obs = data["raw_future_observations"][knn_idx][fs]
-                img = obs_visualize(obs)
-                cv2.imwrite(save_dir + f"/{batch}-{i}--{knn_idx}--fs-{fs + 1}.png", img)
-
-    return selected_idxes
+    batch_knn_idxes = batch_knn_idxes.reshape(100, )
+    retri_state1 = data[batch_knn_idxes[1]]
+    retri_state2 = data[batch_knn_idxes[2]]
+    retri_state3 = data[batch_knn_idxes[3]]
+    
+    current_state = data[100000].reshape(99,)
+    #current_state = current_state / np.linalg.norm(current_state)
+    obs_visualize(retri_state1, 1)
+    obs_visualize(retri_state2, 2)
+    obs_visualize(retri_state3, 3)
+    obs_visualize(current_state, 4)
+    
 
 
 if __name__ == "__main__":
@@ -249,7 +212,7 @@ if __name__ == "__main__":
 
     # selected_idxes = retrieve_and_save_imgs(data, test_data, key="embeds")
     # retrieve_and_save_imgs(data, test_data, key="raw_observations", idxes=selected_idxes)
-
+    '''
     data_path = "./logs/basic-retrieval-cond-embedlr-0.001-embeddim-128-fstep-15/basic_retrieval-cond-embedlr_0.001-embeddim_128-fstep_15_2022_09_27_13_31_29_0000--s-0/train_data-fs_15-embeds.th"
     data = torch.load(data_path)
     test_data_path = "./logs/basic-retrieval-cond-embedlr-0.001-embeddim-128-fstep-15/basic_retrieval-cond-embedlr_0.001-embeddim_128-fstep_15_2022_09_27_13_31_29_0000--s-0/test_data-fs_15-embeds.th"
@@ -257,3 +220,11 @@ if __name__ == "__main__":
 
     selected_idxes = retrieve_and_save_imgs(data, test_data, key="embeds", include_target=True)
     retrieve_and_save_imgs(data, test_data, key="raw_observations", include_target=True, idxes=selected_idxes)
+    '''
+
+    dataset_path = "/home/wenbin/kangning/motion-transformer/decision-transformer/gym/observation_dataset.npy"
+    dataset = np.load(dataset_path, allow_pickle=True)
+    test_data = dataset[100000]
+    dataset = np.array(dataset, dtype=np.float64)
+    test_data = test_data.reshape(-1, 99)
+    retrieve_and_save_imgs(dataset, test_data)
