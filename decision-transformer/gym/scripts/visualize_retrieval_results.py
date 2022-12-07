@@ -98,9 +98,9 @@ def obs_visualize(obs):
     body_model = "smpl"
     body_model_path = "./assets/smpl_model/models"  # share drive
 
-    obs = torch.from_numpy(obs).view(-1, 1, 67)
+    obs = torch.from_numpy(obs).view(-1, 1, 67) # shape [batchsize, 1, 67]
 
-    rot = torch.zeros(list(obs.shape[:-2]) + [24, 3])
+    rot = torch.zeros(list(obs.shape[:-2]) + [24, 3]) # shape [batchsize, 24, 3]
     rot[..., DOF_BODY_IDS, :] = obs[..., 4:].view(list(obs.shape[:-2]) + [21, 3])
     rot[..., 0, :] = quat_to_exp_map(obs[:, 0, :4])
 
@@ -171,9 +171,9 @@ def retrieve_and_save_imgs(
     idxes: np.ndarray = None,
 ):
     raw_inputs = data[key]
-    if key == "raw_observations" and include_target:
+    if key == "observations" and include_target:
         raw_inputs = np.concatenate(
-            [raw_inputs, data["raw_future_observations"][:, -1]], axis=-1
+            [raw_inputs, data["future_observations"][:, -1]], axis=-1
         )
     normalized_raw_inputs = (
         raw_inputs / np.linalg.norm(raw_inputs, axis=1)[:, np.newaxis]
@@ -198,9 +198,9 @@ def retrieve_and_save_imgs(
         selected_idxes = idxes
 
     test_inputs = test_data[key]
-    if key == "raw_observations" and include_target:
+    if key == "observations" and include_target:
         test_inputs = np.concatenate(
-            [test_inputs, test_data["raw_future_observations"][:, -1]], axis=-1
+            [test_inputs, test_data["future_observations"][:, -1]], axis=-1
         )
     test_normalized_inputs = (
         test_inputs / np.linalg.norm(test_inputs, axis=1)[:, np.newaxis]
@@ -256,4 +256,4 @@ if __name__ == "__main__":
     test_data = torch.load(test_data_path)
 
     selected_idxes = retrieve_and_save_imgs(data, test_data, key="embeds", include_target=True)
-    retrieve_and_save_imgs(data, test_data, key="raw_observations", include_target=True, idxes=selected_idxes)
+    retrieve_and_save_imgs(data, test_data, key="observations", include_target=True, idxes=selected_idxes)
