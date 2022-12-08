@@ -2,18 +2,23 @@ import numpy as np
 import torch
 import random
 import os
+import sys
+
+sys.path.append(r"/home/wenbin/kangning/motion-transformer/decision-transformer/gym")
+
 from torch.utils.tensorboard import SummaryWriter
 from decision_transformer.evaluation.evaluate_episodes import evaluate_episode_rtg
 
-path = r"/home/wenbin/kangning/motion/RIOT/decision-transformer/gym/motion_test_dataset"
-files = os.listdir(path)
+
+#path = r"/home/wenbin/kangning/motion/RIOT/decision-transformer/gym/motion_test_dataset"
+#files = os.listdir(path)
 
 
 state_dim = 99
 max_ep_len = 1000
 
-file_path = '/home/wenbin/kangning/motion/RIOT/decision-transformer/gym/motion_train_dataset/004882c9-da8d-4a76-90a8-039d9a690d73.npy'
-model = torch.load('dt_model/99dim_eps1000.pt')
+file_path = '/home/wenbin/kangning/motion-transformer/decision-transformer/gym/motion_train_dataset/004882c9-da8d-4a76-90a8-039d9a690d73.npy'
+model = torch.load('../dt_model/99dim_eps1000_with_retri.pt')
 
 data = np.load(file_path, allow_pickle=True)
 od_dict = data.item()
@@ -33,7 +38,7 @@ states = evaluate_episode_rtg(
     max_ep_len=1000,
 )
 states = states.detach().cpu().numpy()
-save_path = 'infer_state_expert.npy'
+save_path = 'infer_state_expert_with_retri.npy'
 np.save(save_path, states)
 
 '''

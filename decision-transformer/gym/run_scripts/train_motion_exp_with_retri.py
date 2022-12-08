@@ -9,6 +9,8 @@ import random
 import sys
 
 
+sys.path.append(r"/home/wenbin/kangning/motion-transformer/decision-transformer/gym")
+
 from decision_transformer.evaluation.evaluate_episodes import (
     evaluate_episode,
     evaluate_episode_rtg,
@@ -44,7 +46,7 @@ def experiment(
 
 
     # load dataset
-    path = r"/home/wenbin/kangning/motion/RIOT/decision-transformer/gym/motion_train_dataset"
+    path = r"/home/wenbin/kangning/motion-transformer/decision-transformer/gym/motion_train_dataset"
     files = os.listdir(path) # 列出目录下的所有文件
     # save all path information into separate lists
     
@@ -75,7 +77,12 @@ def experiment(
             traj = np.array(traj)
             si = random.randint(0, traj.shape[0] - 1)
             # get sequences from dataset
-            s.append(traj[si : si + max_len].reshape(1, -1, state_dim))
+            traj_temp = traj[si : si + max_len]
+            if (si + max_len) >= len(traj) - 1:
+                traj_temp = np.insert(traj_temp, 0, traj[-1])
+            else:   
+                traj_temp = np.insert(traj_temp, 0, traj[si + max_len + 1])
+            s.append(traj_temp.reshape(1, -1, state_dim))
             #a.append(traj["actions"][si : si + max_len].reshape(1, -1, act_dim))
             #r.append(traj["rewards"][si : si + max_len].reshape(1, -1, 1))
             timesteps.append(np.arange(si, si + s[-1].shape[1]).reshape(1, -1))
@@ -88,12 +95,12 @@ def experiment(
 
             # padding and state + reward normalization
             tlen = s[-1].shape[1]
-            s[-1] = np.concatenate([np.zeros((1, max_len - tlen, state_dim)), s[-1]], axis=1)
+            s[-1] = np.concatenate([np.zeros((1, max_len + 1 - tlen, state_dim)), s[-1]], axis=1)
             #s[-1] = (s[-1] - state_mean) / state_std
             #d[-1] = np.concatenate([np.ones((1, max_len - tlen)) * 2, d[-1]], axis=1)
             #rtg[-1] = (np.concatenate([np.zeros((1, max_len - tlen, 1)), rtg[-1]], axis=1) / scale)
-            timesteps[-1] = np.concatenate([np.zeros((1, max_len - tlen)), timesteps[-1]], axis=1)
-            mask.append(np.concatenate([np.zeros((1, max_len - tlen)), np.ones((1, tlen))], axis=1))
+            timesteps[-1] = np.concatenate([np.zeros((1, max_len + 1 - tlen)), timesteps[-1]], axis=1)
+            mask.append(np.concatenate([np.zeros((1, max_len + 1 - tlen)), np.ones((1, tlen))], axis=1))
 
         s = torch.from_numpy(np.concatenate(s, axis=0)).to(dtype=torch.float32, device=device)
         timesteps = torch.from_numpy(np.concatenate(timesteps, axis=0)).to(dtype=torch.long, device=device)
@@ -156,7 +163,7 @@ def experiment(
         )
         if log_to_wandb:
             wandb.log(outputs)
-    torch.save(model, 'dt_model/99dim_eps1000.pt')
+    torch.save(model, '99dim_eps1000_with_retri.pt')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -182,7 +189,7 @@ if __name__ == "__main__":
     parser.add_argument("--weight_decay", "-wd", type=float, default=1e-4)
     parser.add_argument("--warmup_steps", type=int, default=10000)
     parser.add_argument("--num_eval_episodes", type=int, default=100)
-    parser.add_argument("--max_iters", type=int, default=10)
+    parser.add_argument("--max_iters", type=int, default=2)
     parser.add_argument("--num_steps_per_iter", type=int, default=10000)
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--log_to_wandb", "-w", type=bool, default=False)

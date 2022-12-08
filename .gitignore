@@ -12,6 +12,7 @@
 /decision-transformer/gym/motion_transformer_99dim/
 /decision-transformer/gym/test_loss/
 /decision-transformer/gym/observation_data.xls
+/decision-transformer/gym/run_scripts/motion_transformer_99dim_eps1000_with_retri/
 *.npy
 *.png
 *.ply
