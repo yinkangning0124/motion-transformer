@@ -159,7 +159,7 @@ def retrieve_and_save_imgs(
     )
     
     searcher = (
-        scann.scann_ops_pybind.builder(normalized_raw_inputs, 100, "dot_product")
+        scann.scann_ops_pybind.builder(normalized_raw_inputs, 10, "dot_product")
         .tree(
             num_leaves=2000,
             num_leaves_to_search=100,
@@ -190,12 +190,12 @@ def retrieve_and_save_imgs(
     #queries = [test_inputs[idx] for idx in selected_idxes]
     queries = test_data
     batch_knn_idxes = searcher.search_batched(queries)[0]
-    batch_knn_idxes = batch_knn_idxes.reshape(100, )
+    batch_knn_idxes = batch_knn_idxes.reshape(10, )
     retri_state1 = data[batch_knn_idxes[1]]
     retri_state2 = data[batch_knn_idxes[2]]
     retri_state3 = data[batch_knn_idxes[3]]
     
-    current_state = data[100000].reshape(99,)
+    current_state = test_data.reshape(99, )
     #current_state = current_state / np.linalg.norm(current_state)
     obs_visualize(retri_state1, 1)
     obs_visualize(retri_state2, 2)
@@ -223,8 +223,24 @@ if __name__ == "__main__":
     '''
 
     dataset_path = "/home/wenbin/kangning/motion-transformer/decision-transformer/gym/observation_dataset.npy"
+
+    test_data_path = r"/home/wenbin/kangning/motion-transformer/decision-transformer/gym/motion_test_dataset"
+    test_data_file = "98c0de7a-f3d2-4d19-9eee-2578c3dc3308.npy"
+    test_path = os.path.join(test_data_path, test_data_file)
+
+    test_data_traj = np.load(test_path, allow_pickle=True)
+    od_dict = test_data_traj.item()
+    rotation_traj = od_dict["rotation"]["arr"]
+    root_traj = od_dict["root_translation"]["arr"]
+    traj_len = len(root_traj)
+    rotation_traj = rotation_traj.reshape(traj_len, -1)
+    traj = []
+    for j in range(traj_len):
+        traj.append(np.concatenate((root_traj[j], rotation_traj[j]),axis=0))
+    traj = np.array(traj)
+
     dataset = np.load(dataset_path, allow_pickle=True)
-    test_data = dataset[100000]
+
     dataset = np.array(dataset, dtype=np.float64)
-    test_data = test_data.reshape(-1, 99)
+    test_data = traj[100].reshape(-1, 99)
     retrieve_and_save_imgs(dataset, test_data)

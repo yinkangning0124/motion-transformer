@@ -8,6 +8,7 @@ import pickle
 import random
 import sys
 
+sys.path.append(r"/home/wenbin/kangning/motion-transformer/decision-transformer/gym")
 
 from decision_transformer.evaluation.evaluate_episodes import (
     evaluate_episode,
@@ -44,7 +45,7 @@ def experiment(
 
 
     # load dataset
-    path = r"/home/wenbin/kangning/motion/RIOT/decision-transformer/gym/motion_train_dataset"
+    path = r"/home/wenbin/kangning/motion-transformer/decision-transformer/gym/motion_train_dataset"
     files = os.listdir(path) # 列出目录下的所有文件
     # save all path information into separate lists
     
@@ -55,14 +56,14 @@ def experiment(
     K = variant["K"]
     batch_size = variant["batch_size"]
 
-    def get_batch(batch_size=256, max_len=200):
+    def get_batch(batch_size=256, max_len=20):
         file = random.sample(files, batch_size)
 
         #s, a, r, d, rtg, timesteps, mask = [], [], [], [], [], [], []
         s, d, timesteps, mask = [], [], [], []
         for i in range(batch_size):
             traj = []
-            filepath = path + '/' + file[i]
+            filepath = os.path.join(path, file[i])
             data = np.load(filepath, allow_pickle=True)
             od_dict = data.item()
             rotation_traj = od_dict["rotation"]["arr"]

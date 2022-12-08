@@ -19,6 +19,11 @@ class SequenceTrainer(Trainer):
             timesteps,
             attention_mask=attention_mask,
         )
+
+        state_target = state_target[ : , 1 : , : ]
+        state_preds = state_preds[ : , 1 : , : ]
+        attention_mask = attention_mask[:, 1 : ]
+        
         state_dim = state_preds.shape[2]
         
         state_preds = state_preds.reshape(-1, state_dim)[attention_mask.reshape(-1) > 0]

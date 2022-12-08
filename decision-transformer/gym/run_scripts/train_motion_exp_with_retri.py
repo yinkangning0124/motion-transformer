@@ -57,14 +57,14 @@ def experiment(
     K = variant["K"]
     batch_size = variant["batch_size"]
 
-    def get_batch(batch_size=256, max_len=200):
+    def get_batch(batch_size=256, max_len=10):
         file = random.sample(files, batch_size)
 
         #s, a, r, d, rtg, timesteps, mask = [], [], [], [], [], [], []
         s, d, timesteps, mask = [], [], [], []
         for i in range(batch_size):
             traj = []
-            filepath = path + '/' + file[i]
+            filepath = os.path.join(path, file[i])
             data = np.load(filepath, allow_pickle=True)
             od_dict = data.item()
             rotation_traj = od_dict["rotation"]["arr"]
@@ -75,13 +75,13 @@ def experiment(
                 traj.append(np.concatenate((rotation_traj[j], root_traj[j]),axis=0))
             
             traj = np.array(traj)
-            si = random.randint(0, traj.shape[0] - 1)
+            si = random.randint(0, traj.shape[0] - max_len - 1)
             # get sequences from dataset
             traj_temp = traj[si : si + max_len]
             if (si + max_len) >= len(traj) - 1:
                 traj_temp = np.insert(traj_temp, 0, traj[-1])
             else:   
-                traj_temp = np.insert(traj_temp, 0, traj[si + max_len + 1])
+                traj_temp = np.insert(traj_temp, 0, traj[si + max_len])
             s.append(traj_temp.reshape(1, -1, state_dim))
             #a.append(traj["actions"][si : si + max_len].reshape(1, -1, act_dim))
             #r.append(traj["rewards"][si : si + max_len].reshape(1, -1, 1))
@@ -163,7 +163,7 @@ def experiment(
         )
         if log_to_wandb:
             wandb.log(outputs)
-    torch.save(model, '99dim_eps1000_with_retri.pt')
+    torch.save(model, '99dim_eps1000_with_retri_loss_mask_goal.pt')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     )  # normal for standard setting, delayed for sparse
     parser.add_argument("--K", type=int, default=20)
     parser.add_argument("--pct_traj", type=float, default=1.0)
-    parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument(
         "--model_type", type=str, default="dt"
     )  # dt for decision transformer, bc for behavior cloning
