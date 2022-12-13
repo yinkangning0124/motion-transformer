@@ -107,14 +107,70 @@ class DecisionTransformer(TrajectoryModel):
 
         return state_preds
         
-    def get_action(self, states, timesteps, **kwargs):
+    def get_action(self, states, goal_state, timesteps, **kwargs):
         # we don't care about the past rewards in this model
 
         states = states.reshape(1, -1, self.state_dim)
-        #actions = actions.reshape(1, -1, self.act_dim)
-        #returns_to_go = returns_to_go.reshape(1, -1, 1)
+        goal_state = goal_state.reshape(1, -1, self.state_dim)
         timesteps = timesteps.reshape(1, -1)
+        
+        #motion transformer with goal condition
+        
+        if self.max_length is not None:
+            if self.max_length < states.shape[1]:
+                states = states[:, - (self.max_length - 1) :]
+                states = torch.cat([goal_state, states], dim=1)
+            else:
+            
+                states = states[:, -self.max_length :]
+            
+            timesteps = timesteps[:, -self.max_length :]
 
+            
+            # pad all tokens to sequence length
+            attention_mask = torch.cat(
+                [
+                    torch.zeros(self.max_length - states.shape[1]),
+                    torch.ones(states.shape[1]),
+                ]
+            )
+            attention_mask = attention_mask.to(
+                dtype=torch.long, device=states.device
+            ).reshape(1, -1)
+            states = torch.cat(
+                [
+                    torch.zeros(
+                        (
+                            states.shape[0],
+                            self.max_length - states.shape[1],
+                            self.state_dim,
+                        ),
+                        device=states.device,
+                    ),
+                    states,
+                ],
+                dim=1,
+            ).to(dtype=torch.float32)
+            
+            timesteps = torch.cat(
+                [
+                    torch.zeros(
+                        (timesteps.shape[0], self.max_length - timesteps.shape[1]),
+                        device=timesteps.device,
+                    ),
+                    timesteps,
+                ],
+                dim=1,
+            ).to(dtype=torch.long)
+        else:
+            attention_mask = None
+
+        state_preds = self.forward(states, timesteps, attention_mask=attention_mask, **kwargs)
+        #state_preds = state_preds.detach().cpu().numpy()
+        return state_preds[0, -1]
+
+
+        '''motion transformer without goal condition
         if self.max_length is not None:
             states = states[:, -self.max_length :]
             #actions = actions[:, -self.max_length :]
@@ -145,36 +201,7 @@ class DecisionTransformer(TrajectoryModel):
                 ],
                 dim=1,
             ).to(dtype=torch.float32)
-            '''
-            actions = torch.cat(
-                [
-                    torch.zeros(
-                        (
-                            actions.shape[0],
-                            self.max_length - actions.shape[1],
-                            self.act_dim,
-                        ),
-                        device=actions.device,
-                    ),
-                    actions,
-                ],
-                dim=1,
-            ).to(dtype=torch.float32)
-            returns_to_go = torch.cat(
-                [
-                    torch.zeros(
-                        (
-                            returns_to_go.shape[0],
-                            self.max_length - returns_to_go.shape[1],
-                            1,
-                        ),
-                        device=returns_to_go.device,
-                    ),
-                    returns_to_go,
-                ],
-                dim=1,
-            ).to(dtype=torch.float32)
-            '''
+        
             timesteps = torch.cat(
                 [
                     torch.zeros(
@@ -191,3 +218,4 @@ class DecisionTransformer(TrajectoryModel):
         state_preds = self.forward(states, timesteps, attention_mask=attention_mask, **kwargs)
         #state_preds = state_preds.detach().cpu().numpy()
         return state_preds[0, -1]
+        '''

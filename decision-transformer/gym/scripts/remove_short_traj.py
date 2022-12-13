@@ -1,7 +1,7 @@
 import numpy as np
 import os
 
-path = r"/home/wenbin/kangning/motion-transformer/decision-transformer/gym/motion_train_dataset"
+path = r"/home/kangning/kangning/motion-transformer/decision-transformer/gym/motion_train_dataset"
 files = os.listdir(path) # 列出目录下的所有文件
 
 remove_list = []
@@ -12,7 +12,7 @@ for file in files:
     od_dict = data.item()
     rotation_traj = od_dict["rotation"]["arr"]
     length = len(rotation_traj)
-    if length < 20:
+    if length < 30:
         remove_list.append(file)
 
 print(remove_list)

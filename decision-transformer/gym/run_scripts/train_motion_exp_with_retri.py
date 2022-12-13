@@ -9,7 +9,7 @@ import random
 import sys
 
 
-sys.path.append(r"/home/wenbin/kangning/motion-transformer/decision-transformer/gym")
+sys.path.append(r"/home/kangning/kangning/motion-transformer/decision-transformer/gym")
 
 from decision_transformer.evaluation.evaluate_episodes import (
     evaluate_episode,
@@ -46,7 +46,7 @@ def experiment(
 
 
     # load dataset
-    path = r"/home/wenbin/kangning/motion-transformer/decision-transformer/gym/motion_train_dataset"
+    path = r"/home/kangning/kangning/motion-transformer/decision-transformer/gym/motion_train_dataset"
     files = os.listdir(path) # 列出目录下的所有文件
     # save all path information into separate lists
     
@@ -57,7 +57,7 @@ def experiment(
     K = variant["K"]
     batch_size = variant["batch_size"]
 
-    def get_batch(batch_size=256, max_len=10):
+    def get_batch(batch_size=256, max_len=20):
         file = random.sample(files, batch_size)
 
         #s, a, r, d, rtg, timesteps, mask = [], [], [], [], [], [], []
@@ -163,7 +163,7 @@ def experiment(
         )
         if log_to_wandb:
             wandb.log(outputs)
-    torch.save(model, '99dim_eps1000_with_retri_loss_mask_goal.pt')
+    torch.save(model, '99dim_eps1000_with_retri_loss_mask_goal_20window.pt')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -189,7 +189,7 @@ if __name__ == "__main__":
     parser.add_argument("--weight_decay", "-wd", type=float, default=1e-4)
     parser.add_argument("--warmup_steps", type=int, default=10000)
     parser.add_argument("--num_eval_episodes", type=int, default=100)
-    parser.add_argument("--max_iters", type=int, default=2)
+    parser.add_argument("--max_iters", type=int, default=10)
     parser.add_argument("--num_steps_per_iter", type=int, default=10000)
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--log_to_wandb", "-w", type=bool, default=False)
