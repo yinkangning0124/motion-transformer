@@ -20,11 +20,17 @@ class SequenceTrainer(Trainer):
             attention_mask=attention_mask,
         )
 
-        state_target = state_target[ : , 1 : , : ]
+        state_dim = state_preds.shape[2]
+        
+        goal_state = state_target[ : , 0, : ]
+        goal_state = goal_state.reshape(-1, 1, state_dim)
+
+        state_target = state_target[ : , 2 : , : ]
+        state_target = torch.cat([state_target, goal_state], dim=1)
         state_preds = state_preds[ : , 1 : , : ]
         attention_mask = attention_mask[:, 1 : ]
         
-        state_dim = state_preds.shape[2]
+        
         
         state_preds = state_preds.reshape(-1, state_dim)[attention_mask.reshape(-1) > 0]
         state_target = state_target.reshape(-1, state_dim)[attention_mask.reshape(-1) > 0]

@@ -45,7 +45,7 @@ class Trainer:
         train_start = time.time()
 
         self.model.train()
-        writer = SummaryWriter("motion_transformer_99dim_eps1000_with_retri_loss_mask_goal_20window")
+        writer = SummaryWriter("motion_transformer_99dim_eps1000_with_retri_loss_mask_goal_20window_cuowei")
         for i in range(num_steps):
             train_loss = self.train_step(
                 env

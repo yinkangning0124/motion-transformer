@@ -1,9 +1,8 @@
 /motion-retrieval/assets/amass_with_babel_precomputed/
 /decision-transformer/gym/data/
 /decision-transformer/gym/dt_model/
-/decision-transformer/gym/motion_transformer_99dim_eps1000/
+/decision-transformer/gym/loss_record/
 /decision-transformer/gym/motion_test_dataset/
-/decision-transformer/gym/motion_transformer_loss/
 /decision-transformer/gym/ss.pty
 /decision-transformer/gym/ddd/
 /decision-transformer/gym/motion_train_dataset/
@@ -12,10 +11,11 @@
 /decision-transformer/gym/motion_transformer_99dim/
 /decision-transformer/gym/test_loss/
 /decision-transformer/gym/observation_data.xls
-/decision-transformer/gym/run_scripts/motion_transformer_99dim_eps1000_with_retri/
-/decision-transformer/gym/run_scripts/motion_transformer_99dim_eps1000_with_retri_loss_mask_goal/
+/decision-transformer/gym/run_scripts/motion_transformer_99dim_eps1000_with_retri_loss_mask_goal_20window_cuowei/
+/motion_transformer_99dim_eps1000_with_retri_loss_mask_goal_20window_cuowei/
 
+*.pyc
 *.npy
 *.png
 *.ply
-*.pyc
+

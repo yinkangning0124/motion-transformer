@@ -163,7 +163,7 @@ def experiment(
         )
         if log_to_wandb:
             wandb.log(outputs)
-    torch.save(model, '99dim_eps1000_with_retri_loss_mask_goal_20window.pt')
+    torch.save(model, '99dim_eps1000_with_retri_loss_mask_goal_20window_cuowei.pt')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     )  # normal for standard setting, delayed for sparse
     parser.add_argument("--K", type=int, default=20)
     parser.add_argument("--pct_traj", type=float, default=1.0)
-    parser.add_argument("--batch_size", type=int, default=128)
+    parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument(
         "--model_type", type=str, default="dt"
     )  # dt for decision transformer, bc for behavior cloning

@@ -120,13 +120,12 @@ class DecisionTransformer(TrajectoryModel):
             if self.max_length < states.shape[1]:
                 states = states[:, - (self.max_length - 1) :]
                 states = torch.cat([goal_state, states], dim=1)
+            
             else:
-            
                 states = states[:, -self.max_length :]
-            
+                
             timesteps = timesteps[:, -self.max_length :]
 
-            
             # pad all tokens to sequence length
             attention_mask = torch.cat(
                 [
@@ -151,7 +150,7 @@ class DecisionTransformer(TrajectoryModel):
                 ],
                 dim=1,
             ).to(dtype=torch.float32)
-            
+
             timesteps = torch.cat(
                 [
                     torch.zeros(

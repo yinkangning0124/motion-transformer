@@ -84,43 +84,43 @@ def evaluate_episode_rtg(
     model.eval()
     model.to(device=device)
 
-    goal_state = traj[20]
-
+    goal_state = traj[1]
     initial_state = (
         torch.from_numpy(initial_state)
        .reshape(1, state_dim)
        .to(device=device, dtype=torch.float32)
     )
-
     goal_state = (
         torch.from_numpy(goal_state)
         .reshape(1, state_dim)
         .to(device=device, dtype=torch.float32)
     )
     
-    states = torch.cat((goal_state, initial_state), dim=0)
-    
-
+    #states = torch.cat((goal_state, initial_state), dim=0)
+    states = initial_state
 
     timesteps = torch.tensor(0, device=device, dtype=torch.long).reshape(1, 1)
     timesteps = torch.cat(
             [timesteps, torch.ones((1, 1), device=device, dtype=torch.long)],
            dim=1,
        )
-
+    
+    
     for t in range(320):
-        if t >= len(traj) -4:
+        if t >= len(traj) -1:
             goal_state = (
                 torch.from_numpy(traj[-1])
                 .reshape(1, state_dim)
                 .to(device=device, dtype=torch.float32)
-        )
+            )
         else:
             goal_state = (
-                torch.from_numpy(traj[t + 3])
+                torch.from_numpy(traj[t + 1])
                 .reshape(1, state_dim)
                 .to(device=device, dtype=torch.float32)
-        )
+            )
+            if t < 20:
+                states = torch.cat([goal_state, states], dim=0)
 
         state = model.get_action(
             states.to(dtype=torch.float32),
