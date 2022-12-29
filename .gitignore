@@ -13,7 +13,7 @@
 /decision-transformer/gym/observation_data.xls
 /decision-transformer/gym/run_scripts/motion_transformer_99dim_eps1000_with_retri_loss_mask_goal_20window_cuowei/
 /motion_transformer_99dim_eps1000_with_retri_loss_mask_goal_20window_cuowei/
-
+/motion_data/
 *.pyc
 *.npy
 *.png
