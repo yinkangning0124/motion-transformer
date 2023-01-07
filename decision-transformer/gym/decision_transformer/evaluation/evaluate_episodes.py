@@ -83,7 +83,8 @@ def evaluate_episode_rtg(
 
     model.eval()
     model.to(device=device)
-
+    final_state = []
+    final_state.append(initial_state)
     goal_state = traj[1]
     initial_state = (
         torch.from_numpy(initial_state)
@@ -106,7 +107,7 @@ def evaluate_episode_rtg(
        )
     
     
-    for t in range(320):
+    for t in range(117):
         if t >= len(traj) -1:
             goal_state = (
                 torch.from_numpy(traj[-1])
@@ -132,6 +133,7 @@ def evaluate_episode_rtg(
         )
 
         state = state.detach().cpu().numpy()
+        final_state.append(state)
         cur_state = torch.from_numpy(state).to(device=device).reshape(1, state_dim)
         states = torch.cat([states, cur_state], dim=0)
 
@@ -140,4 +142,4 @@ def evaluate_episode_rtg(
             dim=1,
         )
 
-    return states
+    return final_state

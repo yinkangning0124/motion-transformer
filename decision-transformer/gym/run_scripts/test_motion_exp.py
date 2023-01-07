@@ -17,7 +17,7 @@ from decision_transformer.evaluation.evaluate_episodes import evaluate_episode_r
 state_dim = 99
 max_ep_len = 1000
 
-file_path = '/home/kangning/kangning/motion-transformer/decision-transformer/gym/motion_train_dataset/9d723ab7-ba38-400d-a680-68a2e288db28.npy'
+file_path = '/home/kangning/kangning/motion-transformer/decision-transformer/gym/motion_test_dataset/860975b8-75f0-4c8f-adbc-348da670339e.npy'
 model = torch.load('/home/kangning/kangning/motion-transformer/decision-transformer/gym/dt_model/99dim_eps1000_with_retri_loss_mask_goal_20window_cuowei.pt')
 
 data = np.load(file_path, allow_pickle=True)
@@ -52,8 +52,8 @@ states = evaluate_episode_rtg(
     model=model,
     max_ep_len=1000,
 )
-states = states.detach().cpu().numpy()
-save_path = 'infer_state_expert_with_retri_loss_mask_goal_cuowei_traj3.npy'
+states = np.array(states)
+save_path = 'infer_state_with_goal_always_first_2.npy'
 np.save(save_path, states)
 
 '''
